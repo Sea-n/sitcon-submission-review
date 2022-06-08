@@ -27,6 +27,7 @@ h1 {
   display: inline-block;
   min-width: 1px;
   white-space: pre-line;
+  word-break: break-word;
 }
 
 .data > div:last-child > .field-name {
