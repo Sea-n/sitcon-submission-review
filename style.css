@@ -17,7 +17,7 @@ h1 {
 }
 
 .data > div > .field-name {
-  display: inline-block;
+  display: block;
   min-width: 8em;
   font-weight: bold;
   padding-bottom: 0;
