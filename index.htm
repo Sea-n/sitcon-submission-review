@@ -37,7 +37,7 @@
     <div class="field">
       <span class="field-name" :class="!data[field] ? 'small font-weight-light text-muted' : ''">{{field}}</span>
       <span class="field-content">
-        <a v-if="data[field].match(/^https?:/)" :href="data[field]" target="_blank">{{data[field]}}</a>
+        <a v-if="data[field].match(/^https?:(?!http).*$/)" :href="data[field]" target="_blank">{{data[field]}}</a>
         <span v-else>{{data[field]}}</span>
       </span>
     </div>
