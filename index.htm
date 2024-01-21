@@ -35,10 +35,11 @@
 
   <template id="data-field">
     <div class="field">
-      <span class="field-name" :class="!data[field] ? 'small font-weight-light text-muted' : ''">{{field}}</span>
+      <span class="field-name" :class="!data[field] ? 'small text-muted' : ''">{{field}}</span>
       <span class="field-content">
         <a v-if="data[field].match(/^https?:(?!http).*$/)" :href="data[field]" target="_blank">{{data[field]}}</a>
-        <span v-else>{{data[field]}}</span>
+        <span v-else-if="data[field]">{{data[field]}}</span>
+        <span class="small text-muted" v-else>None</span>
       </span>
     </div>
   </template>
