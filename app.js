@@ -39,11 +39,15 @@ function tableTo2DArray(table)
     }));
 }
 
-function parseSubmitFormData(contentDOM)
+function getSubmitFormHeader(arr)
 {
-  return tableTo2DArray(contentDOM.querySelector('table'))
-    .slice(CONFIG.skipRows)
-    .map(row => arrayToObject(CONFIG.fields.map(f => f && f.name), row));
+  return arr[1]; /* After column number */
+}
+
+function getSubmitFormData(arr)
+{
+  return arr.slice(3) /* Column number, Header, Freeze Separator */
+    .map(row => arrayToObject(vm.fields, row));
 }
 
 var vm;
@@ -70,7 +74,7 @@ function runApp()
         default: () => {}
       },
       field: {
-        type: Object,
+        type: String,
         default: () => {}
       }
     }
@@ -82,7 +86,7 @@ function runApp()
     data: function () {
       return {
         db: [],
-        fields: CONFIG.fields,
+        fields: [],
         state: 'NOFILE'
       }
     },
@@ -90,7 +94,10 @@ function runApp()
       if(CONFIG.dataFileName) {
         this.state = 'LOADING';
         load(CONFIG.dataFileName).then(doc => {
-          this.db = parseSubmitFormData(doc);
+          let contentDOM = parseHTML(reader.result)
+          let arr = tableTo2DArray(contentDOM.querySelector('table'));
+          this.fields = getSubmitFormHeader(arr);
+          this.db = getSubmitFormData(arr);
         }).catch(() => { this.state = 'ERROR'; });
       }
     },
@@ -99,7 +106,7 @@ function runApp()
         this.state = 'DONE'
       }
     },
-    methods: {  
+    methods: {
       onUploadByButton(e) {
         loadFile(e.target.files[0])
       }
@@ -125,7 +132,10 @@ function loadFile(file){
   reader.addEventListener('loadend', e => {
     if(reader.readyState === FileReader.DONE) {
       if(vm) {
-        vm.db = parseSubmitFormData(parseHTML(reader.result));
+        let contentDOM = parseHTML(reader.result)
+        let arr = tableTo2DArray(contentDOM.querySelector('table'));
+        vm.fields = getSubmitFormHeader(arr);
+        vm.db = getSubmitFormData(arr);
       }
     }
   });

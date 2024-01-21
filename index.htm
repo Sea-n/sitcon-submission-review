@@ -35,10 +35,10 @@
 
   <template id="data-field">
     <div class="field">
-      <span class="field-name">{{field.label}}</span>
+      <span class="field-name">{{field}}</span>
       <span class="field-content">
-        <a v-if="field.isURL && data[field.name].match(/^https?:/)" :href="data.attachment">{{data[field.name]}}</a>
-        <span v-else>{{data[field.name]}}</span>
+        <a v-if="field.isURL && data[field].match(/^https?:/)" :href="data.attachment">{{data[field]}}</a>
+        <span v-else>{{data[field]}}</span>
       </span>
     </div>
   </template>
