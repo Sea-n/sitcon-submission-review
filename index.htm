@@ -21,6 +21,8 @@
     <div class="container">
       <h1>SITCON Submissions Reviewing Tool</h1>
 
+      <input type="button" value="Light/Dark Mode" v-on:click="changeMode">
+      <br><br>
       <data-view v-if="db.length > 0" v-for="data in db" :data="data" :fields="fields"></data-view>
       <div v-if="state === 'LOADING'">Loading...</div>
       <div v-if="state === 'NOFILE'">

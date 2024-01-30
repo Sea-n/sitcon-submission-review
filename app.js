@@ -109,6 +109,10 @@ function runApp()
     methods: {
       onUploadByButton(e) {
         loadFile(e.target.files[0])
+      },
+      changeMode() {
+        var element = document.body;
+        element.classList.toggle("dark-mode");
       }
     }
   });
