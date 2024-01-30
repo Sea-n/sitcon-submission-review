@@ -111,8 +111,8 @@ function runApp()
         loadFile(e.target.files[0])
       },
       changeMode() {
-        var element = document.body;
-        element.classList.toggle("dark-mode");
+        let preferredTheme = localStorage.getItem('theme');
+        setTheme(preferredTheme === 'dark' ? 'light' : 'dark');
       }
     }
   });
@@ -153,3 +153,34 @@ document.addEventListener('dragover', e => {
 }, false);
 
 // vim: et sw=2
+
+// Set the theme
+function setTheme(theme) {
+  localStorage.setItem('theme', theme);
+  document.body.classList.toggle('dark-mode', theme === 'dark');
+  switchThemeIcon(theme);
+}
+
+// Switch the theme switch button icon
+function switchThemeIcon(theme) {
+  const btnSwitchTheme = document.getElementById('btnSwitchTheme');
+  const iconSpan = btnSwitchTheme.querySelector('.material-symbols-outlined');
+  if (theme === 'dark') {
+    iconSpan.textContent = 'light_mode';
+  } else {
+    iconSpan.textContent = 'dark_mode';
+  }
+}
+
+// Listen to user-preferred theme
+window.addEventListener('load', (event) => {
+  let preferredTheme = localStorage.getItem('theme');
+  let darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (preferredTheme == null) {
+    preferredTheme = darkQuery.matches ? 'dark' : 'light';
+  }
+  darkQuery.addEventListener('change', function (e) {
+    setTheme(e.matches ? 'dark' : 'light');
+  });
+  setTheme(preferredTheme);
+});
