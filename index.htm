@@ -33,9 +33,14 @@
       <div v-if="state === 'DONE' && db.length == 0">NO DATA</div>
       
       <div class="button-container">
-        <button type="button" class="btn" id="btnSwitchTheme" v-on:click="changeMode">
+        <button type="button" class="btn" id="btnSwitchTheme" v-on:click="changeTheme">
           <span class="material-symbols-outlined">
             dark_mode
+          </span>
+        </button>
+        <button type="button" class="btn" id="btnScrollToTop" v-on:click="scrollToTop">
+          <span class="material-symbols-outlined">
+            arrow_upward
           </span>
         </button>
       </div>

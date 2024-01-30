@@ -110,9 +110,19 @@ function runApp()
       onUploadByButton(e) {
         loadFile(e.target.files[0])
       },
-      changeMode() {
+      changeTheme() {
         let preferredTheme = localStorage.getItem('theme');
         setTheme(preferredTheme === 'dark' ? 'light' : 'dark');
+      },
+      scrollToTop() {
+        var scrollStep = -window.scrollY / (600 / 15);
+        var scrollInterval = setInterval(function() {
+          if (window.scrollY !== 0) {
+            window.scrollBy(0, scrollStep);
+          } else {
+            clearInterval(scrollInterval);
+          }
+        }, 15);
       }
     }
   });
@@ -183,4 +193,18 @@ window.addEventListener('load', (event) => {
     setTheme(e.matches ? 'dark' : 'light');
   });
   setTheme(preferredTheme);
+});
+
+// smooth scroll-to-top button
+document.addEventListener('DOMContentLoaded', function() {
+  var btnScrollToTop = document.getElementById('btnScrollToTop');
+
+  // Show or hide the button based on the scroll position
+  window.addEventListener('scroll', function() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+      btnScrollToTop.style.display = 'flex';
+    } else {
+      btnScrollToTop.style.display = 'none';
+    }
+  });
 });

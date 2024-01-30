@@ -72,6 +72,10 @@ body {
   color: #fff;
 }
 
+#btnScrollToTop {
+  display: none;
+}
+
 .material-symbols-outlined {
   display: inline-block;
 }
