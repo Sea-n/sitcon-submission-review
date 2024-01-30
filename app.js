@@ -123,6 +123,9 @@ function runApp()
             clearInterval(scrollInterval);
           }
         }, 15);
+      },
+      returnToHome() {
+        location.reload();
       }
     }
   });
@@ -153,7 +156,8 @@ function loadFile(file){
       }
     }
   });
-  reader.readAsText(file, 'UTF-8')
+  reader.readAsText(file, 'UTF-8');
+  btnReturnToHome.style.display = 'flex';
 }
 
 document.addEventListener('dragover', e => {

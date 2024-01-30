@@ -76,6 +76,10 @@ body {
   display: none;
 }
 
+#btnReturnToHome {
+  display: none;
+}
+
 .material-symbols-outlined {
   display: inline-block;
 }
