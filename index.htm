@@ -27,7 +27,11 @@
       <div v-if="state === 'NOFILE'">
         Please drag HTML file into this window or click the button below to upload.
         <br>
-        <input type="file" @change="onUploadByButton">
+        <label for="file" class="drop-container">
+          <span class="drop-title">Drop the file here</span>
+          or
+          <input type="file" @change="onUploadByButton" accept=".html, .htm">
+        </label>
       </div>
       <div v-if="state === 'ERROR'">Loading failed, please drag HTML file manually.</div>
       <div v-if="state === 'DONE' && db.length == 0">NO DATA</div>
