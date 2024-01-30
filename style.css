@@ -18,6 +18,9 @@ body {
   background: #eee;
   padding: .5em 1em;
   margin-bottom: 2em;
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+  border-left: 2px solid #A6BC09;
 }
 
 .data > div:not(:last-child) {
