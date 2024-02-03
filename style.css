@@ -1,5 +1,6 @@
 h1 {
   margin: 1em 0;
+  font-family: 'Poppins', 'Roboto', sans-serif;
 }
 
 a {
@@ -11,7 +12,8 @@ a:hover {
 }
 
 body {
-  transition: all 0.25s ease;
+  font-family: 'Roboto', sans-serif;
+  transition: all 0.25s ease-in-out;
 }
 
 .data {
@@ -20,7 +22,11 @@ body {
   margin-bottom: 2em;
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
-  border-left: 2px solid #A6BC09;
+  transition: background 0.25s ease-in-out;
+}
+
+.data:hover {
+  box-shadow: -2px 0px #A6BC09;
 }
 
 .data > div:not(:last-child) {
@@ -68,7 +74,7 @@ body {
   z-index: 1;
   display: flex;
   align-items: center;
-  transition: all 0.3s ease-in-out;
+  transition: background 0.25s ease-in-out;
 }
 
 .btn:hover {
@@ -101,6 +107,7 @@ body {
   border: 2px dashed #212121;
   color: #212121;
   margin-top: 14px;
+  transition: all 0.25s ease-in-out;
 }
 
 .drop-title {
@@ -108,6 +115,7 @@ body {
   font-size: 20px;
   font-weight: 500;
   text-align: center;
+  transition: all 0.25s ease-in-out;
 }
 
 input[type=file] {
@@ -120,6 +128,7 @@ input[type=file] {
   border: 1px solid #555;
   margin-top: 10px;
   pointer-events: none;
+  transition: all 0.25s ease-in-out;
 }
 
 input[type=file]::file-selector-button {
@@ -132,7 +141,7 @@ input[type=file]::file-selector-button {
   font-weight: 500;
   cursor: pointer;
   border-radius: 50px;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.25s ease-in-out;
   pointer-events: all;
 }
 
