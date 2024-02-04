@@ -157,7 +157,7 @@ function loadFile(file){
     }
   });
   reader.readAsText(file, 'UTF-8');
-  btnReturnToHome.style.display = 'flex';
+  btnReturnToHome.style.display = 'flex'; // The return home button only appears after loading the file
 }
 
 document.addEventListener('dragover', e => {
