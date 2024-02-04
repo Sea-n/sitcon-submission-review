@@ -152,7 +152,7 @@ input[type=file]::file-selector-button:hover {
 }
 
 .dark-mode {
-  background-color: #212529;
+  background-color: #212121;
   color: #fff;
 
   a {
@@ -160,7 +160,7 @@ input[type=file]::file-selector-button:hover {
   }
 
   .data {
-    background-color: #343a40;
+    background-color: #ffffff14;
   }
 
   .btn {
@@ -184,7 +184,7 @@ input[type=file]::file-selector-button:hover {
   
   input[type=file] {
     color: #ffffffc0;
-    background: #212529;
+    background: #212121;
     border: 1px solid #ffffffc0;
   }
   
