@@ -34,7 +34,7 @@ body {
 }
 
 .data > div > span {
-  padding: .5em 0;
+  padding: .5em .6em;
 }
 
 .data > div > .field-name {
