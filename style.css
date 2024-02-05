@@ -18,7 +18,7 @@ body {
 
 .data {
   background: #eee;
-  padding: .5em 1em;
+  padding: 1em 1.5em;
   margin-bottom: 2em;
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
@@ -34,7 +34,7 @@ body {
 }
 
 .data > div > span {
-  padding: .5em .6em;
+  padding: .5em 0;
 }
 
 .data > div > .field-name {
@@ -148,7 +148,7 @@ input[type=file]::file-selector-button {
 input[type=file]::file-selector-button:hover {
   background: #CCEA8D;
   color: #01415B;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .dark-mode {
