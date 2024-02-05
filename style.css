@@ -22,11 +22,11 @@ body {
   margin-bottom: 2em;
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
-  transition: background 0.25s ease-in-out;
+  transition: background 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
 }
 
 .data:hover {
-  box-shadow: -2px 0px #A6BC09;
+  box-shadow: -2.5px 0px #A6BC09;
 }
 
 .data > div:not(:last-child) {
