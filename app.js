@@ -157,7 +157,8 @@ function loadFile(file){
     }
   });
   reader.readAsText(file, 'UTF-8');
-  btnReturnToHome.style.display = 'flex'; // The return home button only appears after loading the file
+  btnReturnToHome.style.pointerEvents = 'all';
+  btnReturnToHome.style.opacity = 1; // The return home button only appears after loading the file
 }
 
 document.addEventListener('dragover', e => {
@@ -206,9 +207,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Show or hide the button based on the scroll position
   window.addEventListener('scroll', function() {
     if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-      btnScrollToTop.style.display = 'flex';
+      btnScrollToTop.style.pointerEvents = 'all';
+      btnScrollToTop.style.opacity = 1;
+      btnScrollToTop.style.transform = 'translateY(0px)';
+      btnSwitchTheme.style.transform = 'translateY(0px)';
+      btnReturnToHome.style.transform = 'translateY(0px)';
     } else {
-      btnScrollToTop.style.display = 'none';
+      btnScrollToTop.style.opacity = 0;
+      btnScrollToTop.style.pointerEvents = 'none';
+      btnScrollToTop.style.transform = 'translateY(55px)';
+      btnReturnToHome.style.transform = 'translateY(55px)';
+      btnSwitchTheme.style.transform = 'translateY(55px)';
     }
   });
 });
