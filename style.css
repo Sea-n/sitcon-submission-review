@@ -113,7 +113,7 @@ body {
 .drop-title {
   color: #212121;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 450;
   text-align: center;
   transition: all 0.25s ease-in-out;
 }
@@ -138,7 +138,7 @@ input[type=file]::file-selector-button {
   padding: 10px 20px;
   border-radius: 50px;
   color: #fff;
-  font-weight: 500;
+  font-weight: 450;
   cursor: pointer;
   border-radius: 50px;
   transition: all 0.25s ease-in-out;
