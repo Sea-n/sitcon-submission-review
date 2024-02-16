@@ -110,9 +110,22 @@ function runApp()
       onUploadByButton(e) {
         loadFile(e.target.files[0])
       },
-      changeMode() {
-        var element = document.body;
-        element.classList.toggle("dark-mode");
+      changeTheme() {
+        let preferredTheme = localStorage.getItem('theme');
+        setTheme(preferredTheme === 'dark' ? 'light' : 'dark');
+      },
+      scrollToTop() {
+        var scrollStep = -window.scrollY / (600 / 15);
+        var scrollInterval = setInterval(function() {
+          if (window.scrollY !== 0) {
+            window.scrollBy(0, scrollStep);
+          } else {
+            clearInterval(scrollInterval);
+          }
+        }, 15);
+      },
+      returnToHome() {
+        location.reload();
       }
     }
   });
@@ -143,7 +156,9 @@ function loadFile(file){
       }
     }
   });
-  reader.readAsText(file, 'UTF-8')
+  reader.readAsText(file, 'UTF-8');
+  btnReturnToHome.style.pointerEvents = 'all';
+  btnReturnToHome.style.opacity = 1; // The return home button only appears after loading the file
 }
 
 document.addEventListener('dragover', e => {
@@ -153,3 +168,56 @@ document.addEventListener('dragover', e => {
 }, false);
 
 // vim: et sw=2
+
+// Set the theme
+function setTheme(theme) {
+  localStorage.setItem('theme', theme);
+  document.body.classList.toggle('dark-mode', theme === 'dark');
+  switchThemeIcon(theme);
+}
+
+// Switch the theme switch button icon
+function switchThemeIcon(theme) {
+  const btnSwitchTheme = document.getElementById('btnSwitchTheme');
+  const iconSpan = btnSwitchTheme.querySelector('.material-symbols-outlined');
+  if (theme === 'dark') {
+    iconSpan.textContent = 'light_mode';
+  } else {
+    iconSpan.textContent = 'dark_mode';
+  }
+}
+
+// Listen to user-preferred theme
+window.addEventListener('load', (event) => {
+  let preferredTheme = localStorage.getItem('theme');
+  let darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (preferredTheme == null) {
+    preferredTheme = darkQuery.matches ? 'dark' : 'light';
+  }
+  darkQuery.addEventListener('change', function (e) {
+    setTheme(e.matches ? 'dark' : 'light');
+  });
+  setTheme(preferredTheme);
+});
+
+// smooth scroll-to-top button
+document.addEventListener('DOMContentLoaded', function() {
+  var btnScrollToTop = document.getElementById('btnScrollToTop');
+
+  // Show or hide the button based on the scroll position
+  window.addEventListener('scroll', function() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+      btnScrollToTop.style.pointerEvents = 'all';
+      btnScrollToTop.style.opacity = 1;
+      btnScrollToTop.style.transform = 'translateY(0px)';
+      btnSwitchTheme.style.transform = 'translateY(0px)';
+      btnReturnToHome.style.transform = 'translateY(0px)';
+    } else {
+      btnScrollToTop.style.opacity = 0;
+      btnScrollToTop.style.pointerEvents = 'none';
+      btnScrollToTop.style.transform = 'translateY(55px)';
+      btnReturnToHome.style.transform = 'translateY(55px)';
+      btnSwitchTheme.style.transform = 'translateY(55px)';
+    }
+  });
+});

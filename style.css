@@ -1,11 +1,32 @@
 h1 {
   margin: 1em 0;
+  font-family: 'Poppins', 'Roboto', sans-serif;
+}
+
+a {
+  color: #019587;
+}
+
+a:hover {
+  color: #019587;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  transition: all 0.25s ease-in-out;
 }
 
 .data {
   background: #eee;
-  padding: .5em 1em;
+  padding: 1em 1.5em;
   margin-bottom: 2em;
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+  transition: background 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+}
+
+.data:hover {
+  box-shadow: -2.5px 0px #A6BC09;
 }
 
 .data > div:not(:last-child) {
@@ -34,13 +55,156 @@ h1 {
   padding-bottom: .5em;
 }
 
-.dark-mode {
-  background-color: #212529;
+.button-container {
+  position: fixed;
+  bottom: 25px;
+  right: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.btn {
+  margin-top: 10px;
+  padding: 10px 10px;
+  border-radius: 50px;
+  background-color: #019587;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  transition: background 0.25s ease-in-out, transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.btn:hover {
+  background-color: #01877a;
   color: #fff;
 }
 
-.dark-mode .data {
-  background-color: #343a40;
+#btnScrollToTop {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(55px);
+}
+
+#btnReturnToHome {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(55px);
+}
+
+#btnSwitchTheme {
+  transform: translateY(55px);
+}
+
+.material-symbols-outlined {
+  display: inline-block;
+}
+
+.drop-container {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
+  padding: 20px;
+  border-radius: 30px;
+  border: 2px dashed #212121;
+  color: #212121;
+  margin-top: 14px;
+  transition: all 0.25s ease-in-out;
+}
+
+.drop-title {
+  color: #212121;
+  font-size: 20px;
+  font-weight: 450;
+  text-align: center;
+  transition: all 0.25s ease-in-out;
+}
+
+input[type=file] {
+  width: 350px;
+  max-width: 100%;
+  color: #444;
+  padding: 5px;
+  background: #fff;
+  border-radius: 50px;
+  border: 1px solid #555;
+  margin-top: 10px;
+  pointer-events: none;
+  transition: all 0.25s ease-in-out;
+}
+
+input[type=file]::file-selector-button {
+  margin-right: 20px;
+  border: none;
+  background: #01415B;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: #fff;
+  font-weight: 450;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: all 0.25s ease-in-out;
+  pointer-events: all;
+}
+
+input[type=file]::file-selector-button:hover {
+  background: #CCEA8D;
+  color: #01415B;
+  font-weight: 500;
+}
+
+.dark-mode {
+  background-color: #212121;
+  color: #fff;
+
+  a {
+    color: #4ec6ba;
+  }
+
+  .data {
+    background-color: #ffffff14;
+  }
+
+  .btn {
+    background-color: #20b6a7;
+    color: #212121;
+  }
+
+  .btn:hover {
+    background-color: #4ec6ba;
+    color: #212121;
+  }
+
+  .drop-container {
+    border: 2px dashed #fff;
+    color: #fff;
+  }
+
+  .drop-title {
+    color: #fff;
+  }
+  
+  input[type=file] {
+    color: #ffffffc0;
+    background: #212121;
+    border: 1px solid #ffffffc0;
+  }
+  
+  input[type=file]::file-selector-button {
+    background: #CCEA8D;
+    color: #212121;
+  }
+  
+  input[type=file]::file-selector-button:hover {
+    background: #01415B;
+    color: #CCEA8D;
+  }
 }
 /*
  * vim: et sw=2
