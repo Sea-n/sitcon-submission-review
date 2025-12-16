@@ -79,6 +79,14 @@
 
   <template id="data-view">
     <div class="data">
+      <div class="data-actions">
+        <button type="button" class="btn btn-inline btn-icon" @click="copyAsMarkdown" title="Copy as Markdown" aria-label="Copy as Markdown" data-tooltip="Copy as Markdown">
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button type="button" class="btn btn-inline btn-icon btn-ghost" @click="copyFieldsAsMarkdown($event)" title="Copy selected fields as Markdown" aria-label="Copy fields as Markdown" data-tooltip="Copy selected fields">
+          <span class="material-symbols-outlined">checklist</span>
+        </button>
+      </div>
       <data-field v-for="field in fields" v-if="field" :field="field" :data="data"></data-field>
     </div>
   </template>
