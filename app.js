@@ -342,6 +342,7 @@ function runApp()
         }, 15);
       },
       returnToHome() {
+        cancelLoading();
         this.sheets = [];
         this.activeSheetName = '';
         this.db = [];
@@ -387,9 +388,22 @@ function showHomeButton() {
 }
 
 var isLoadingFile = false;
+var loadToken = 0;
+var activeReader = null;
 
-function finishLoading() {
+function finishLoading(token) {
+  if (token !== loadToken) return;
   isLoadingFile = false;
+  activeReader = null;
+}
+
+function cancelLoading() {
+  if (activeReader) {
+    try { activeReader.abort(); } catch (e) {}
+  }
+  loadToken++;
+  isLoadingFile = false;
+  activeReader = null;
 }
 
 function loadFile(file){
@@ -399,39 +413,45 @@ function loadFile(file){
     return;
   }
   isLoadingFile = true;
+  var token = loadToken;
   var name = (file.name || '').toLowerCase();
   if (name.endsWith('.zip')) {
-    loadZipFile(file);
+    loadZipFile(file, token);
   } else {
-    loadHtmlFile(file);
+    loadHtmlFile(file, token);
   }
   showHomeButton();
 }
 
-function loadHtmlFile(file) {
+function loadHtmlFile(file, token) {
   var reader = new FileReader();
+  activeReader = reader;
   reader.addEventListener('loadend', function () {
-    if (reader.readyState !== FileReader.DONE) { finishLoading(); return; }
-    if (!vm) { finishLoading(); return; }
+    if (token !== loadToken) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(token); return; }
+    if (!vm) { finishLoading(token); return; }
     vm.sheets = [];
     vm.activeSheetName = '';
     applySheetToVm(parseSheetHtml(reader.result));
-    finishLoading();
+    finishLoading(token);
   });
   reader.readAsText(file, 'UTF-8');
 }
 
-function loadZipFile(file) {
+function loadZipFile(file, token) {
   if (!window.JSZip) {
     if (vm) vm.state = 'ERROR';
-    finishLoading();
+    finishLoading(token);
     return;
   }
   if (vm) vm.state = 'LOADING';
   var reader = new FileReader();
+  activeReader = reader;
   reader.addEventListener('loadend', function () {
-    if (reader.readyState !== FileReader.DONE) { finishLoading(); return; }
+    if (token !== loadToken) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(token); return; }
     JSZip.loadAsync(reader.result).then(function (zip) {
+      if (token !== loadToken) return;
       var entries = [];
       zip.forEach(function (path, entry) {
         if (entry.dir) return;
@@ -448,14 +468,16 @@ function loadZipFile(file) {
           return { name: e.path.replace(/\.html?$/i, ''), rawHtml: html };
         });
       })).then(function (sheets) {
+        if (token !== loadToken) return;
         if (!vm) return;
         vm.sheets = sheets;
         vm.activeSheetName = sheets[0].name;
         applySheetToVm(parseSheetHtml(sheets[0].rawHtml));
       });
     }).catch(function () {
+      if (token !== loadToken) return;
       if (vm) vm.state = 'ERROR';
-    }).then(finishLoading, finishLoading);
+    }).then(function () { finishLoading(token); }, function () { finishLoading(token); });
   });
   reader.readAsArrayBuffer(file);
 }
