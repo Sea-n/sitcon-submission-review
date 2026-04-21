@@ -50,6 +50,19 @@ function getSubmitFormData(arr)
     .map(row => arrayToObject(vm.fields, row));
 }
 
+function parseSheetHtml(html) {
+  var dom = parseHTML(html);
+  var table = dom.querySelector('table');
+  if (!table) return null;
+  var arr = tableTo2DArray(table);
+  var fields = getSubmitFormHeader(arr);
+  if (!fields) return null;
+  return {
+    fields: fields,
+    data: arr.slice(3).map(function (row) { return arrayToObject(fields, row); })
+  };
+}
+
 var vm;
 var FIELD_PREF_KEY = 'copyFieldsSelection';
 
@@ -278,7 +291,9 @@ function runApp()
         db: [],
         fields: [],
         state: 'NOFILE',
-        selectedFields: []
+        selectedFields: [],
+        sheets: [],
+        activeSheetName: ''
       }
     },
     created: function () {
@@ -330,7 +345,23 @@ function runApp()
         }, 15);
       },
       returnToHome() {
-        location.reload();
+        this.sheets = [];
+        this.activeSheetName = '';
+        this.db = [];
+        this.fields = [];
+        var self = this;
+        this.$nextTick(function () { self.state = 'NOFILE'; });
+        btnReturnToHome.style.pointerEvents = 'none';
+        btnReturnToHome.style.opacity = 0;
+      },
+      switchSheet(name) {
+        var sheet = this.sheets.find(function (s) { return s.name === name; });
+        if (!sheet) return;
+        this.activeSheetName = name;
+        var parsed = parseSheetHtml(sheet.rawHtml);
+        if (!parsed) { this.state = 'ERROR'; return; }
+        this.fields = parsed.fields;
+        this.db = parsed.data;
       }
     }
   });
@@ -349,21 +380,77 @@ document.addEventListener('drop', e => { e.stopPropagation(); e.preventDefault()
 
 
 
+function applySheetToVm(parsed) {
+  if (!vm) return;
+  if (!parsed) { vm.state = 'ERROR'; return; }
+  vm.fields = parsed.fields;
+  vm.db = parsed.data;
+}
+
+function showHomeButton() {
+  btnReturnToHome.style.pointerEvents = 'all';
+  btnReturnToHome.style.opacity = 1;
+}
+
 function loadFile(file){
+  if (!file) return;
+  var name = (file.name || '').toLowerCase();
+  if (name.endsWith('.zip')) {
+    loadZipFile(file);
+  } else {
+    loadHtmlFile(file);
+  }
+  showHomeButton();
+}
+
+function loadHtmlFile(file) {
   var reader = new FileReader();
-  reader.addEventListener('loadend', e => {
-    if(reader.readyState === FileReader.DONE) {
-      if(vm) {
-        let contentDOM = parseHTML(reader.result)
-        let arr = tableTo2DArray(contentDOM.querySelector('table'));
-        vm.fields = getSubmitFormHeader(arr);
-        vm.db = getSubmitFormData(arr);
-      }
-    }
+  reader.addEventListener('loadend', function () {
+    if (reader.readyState !== FileReader.DONE) return;
+    if (!vm) return;
+    vm.sheets = [];
+    vm.activeSheetName = '';
+    applySheetToVm(parseSheetHtml(reader.result));
   });
   reader.readAsText(file, 'UTF-8');
-  btnReturnToHome.style.pointerEvents = 'all';
-  btnReturnToHome.style.opacity = 1; // The return home button only appears after loading the file
+}
+
+function loadZipFile(file) {
+  if (!window.JSZip) {
+    if (vm) vm.state = 'ERROR';
+    return;
+  }
+  if (vm) vm.state = 'LOADING';
+  var reader = new FileReader();
+  reader.addEventListener('loadend', function () {
+    if (reader.readyState !== FileReader.DONE) return;
+    JSZip.loadAsync(reader.result).then(function (zip) {
+      var entries = [];
+      zip.forEach(function (path, entry) {
+        if (entry.dir) return;
+        if (path.indexOf('/') !== -1) return; // exclude resources/ and nested paths
+        if (!/\.html?$/i.test(path)) return;
+        entries.push({ path: path, entry: entry });
+      });
+      if (entries.length === 0) {
+        if (vm) vm.state = 'ERROR';
+        return;
+      }
+      return Promise.all(entries.map(function (e) {
+        return e.entry.async('string').then(function (html) {
+          return { name: e.path.replace(/\.html?$/i, ''), rawHtml: html };
+        });
+      })).then(function (sheets) {
+        if (!vm) return;
+        vm.sheets = sheets;
+        vm.activeSheetName = sheets[0].name;
+        applySheetToVm(parseSheetHtml(sheets[0].rawHtml));
+      });
+    }).catch(function () {
+      if (vm) vm.state = 'ERROR';
+    });
+  });
+  reader.readAsArrayBuffer(file);
 }
 
 document.addEventListener('dragover', e => {
