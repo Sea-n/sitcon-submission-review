@@ -121,7 +121,7 @@
           <span class="material-symbols-outlined">checklist</span>
         </button>
       </div>
-      <data-field v-for="field in fields" v-if="field" :field="field" :data="data"></data-field>
+      <data-field v-for="field in fields" :key="field" v-if="field" :field="field" :data="data"></data-field>
     </div>
   </template>
 
