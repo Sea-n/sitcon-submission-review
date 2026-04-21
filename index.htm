@@ -66,7 +66,7 @@
       <div v-if="db.length > 0 && displayFields.length === 0" class="empty-fields text-muted small">
         No fields selected. Choose fields above to show submissions.
       </div>
-      <data-view v-if="db.length > 0" v-for="data in db" :data="data" :fields="displayFields"></data-view>
+      <data-view v-if="db.length > 0" v-for="(data, i) in db" :key="i" :data="data" :fields="displayFields"></data-view>
       <div v-if="state === 'LOADING'">Loading...</div>
       <div v-if="state === 'NOFILE'">
         Please drag an HTML or ZIP file into this window or click the button below to upload.
@@ -121,7 +121,7 @@
           <span class="material-symbols-outlined">checklist</span>
         </button>
       </div>
-      <data-field v-for="field in fields" :key="field" v-if="field" :field="field" :data="data"></data-field>
+      <data-field v-for="(field, i) in fields" :key="i" v-if="field" :field="field" :data="data"></data-field>
     </div>
   </template>
 
