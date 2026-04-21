@@ -33,10 +33,10 @@
     <div class="container">
       <h1>SITCON Submissions Reviewing Tool</h1>
 
-      <section v-if="sheets.length > 1" class="sheet-switcher">
+      <section v-if="state === 'DONE' && sheets.length > 1" class="sheet-switcher">
         <label for="sheetSelect">Worksheet</label>
         <select id="sheetSelect" :value="activeSheetName" @change="switchSheet($event.target.value)">
-          <option v-for="s in sheets" :value="s.name">{{s.name}}</option>
+          <option v-for="s in sheets" :key="s.name" :value="s.name">{{s.name}}</option>
         </select>
         <span class="text-muted small">{{sheets.length}} sheets in ZIP</span>
       </section>

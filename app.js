@@ -50,8 +50,7 @@ function getSubmitFormData(arr)
     .map(row => arrayToObject(vm.fields, row));
 }
 
-function parseSheetHtml(html) {
-  var dom = parseHTML(html);
+function parseSheetDom(dom) {
   var table = dom.querySelector('table');
   if (!table) return null;
   var arr = tableTo2DArray(table);
@@ -61,6 +60,10 @@ function parseSheetHtml(html) {
     fields: fields,
     data: arr.slice(3).map(function (row) { return arrayToObject(fields, row); })
   };
+}
+
+function parseSheetHtml(html) {
+  return parseSheetDom(parseHTML(html));
 }
 
 var vm;
@@ -96,7 +99,7 @@ function copyToClipboard(text) {
   });
 }
 
-function showCopyFeedback(message) {
+function showToast(message) {
   var existing = document.querySelector('.copy-toast');
   if (existing) {
     existing.parentNode.removeChild(existing);
@@ -235,7 +238,7 @@ function runApp()
         if (!this.fields || this.fields.length === 0) return;
         var markdown = buildMarkdown(this.fields, this.data);
         copyToClipboard(markdown).then(function () {
-          showCopyFeedback('Copied submission');
+          showToast('Copied submission');
         });
       },
       copyFieldsAsMarkdown: function (evt) {
@@ -263,7 +266,7 @@ function runApp()
       copyWithFields: function (fields) {
         var markdown = buildMarkdown(fields, this.data);
         copyToClipboard(markdown).then(function () {
-          showCopyFeedback('Copied selected fields');
+          showToast('Copied selected fields');
         });
       }
     }
@@ -300,10 +303,9 @@ function runApp()
       if(CONFIG.dataFileName) {
         this.state = 'LOADING';
         load(CONFIG.dataFileName).then(doc => {
-          let contentDOM = parseHTML(reader.result)
-          let arr = tableTo2DArray(contentDOM.querySelector('table'));
-          this.fields = getSubmitFormHeader(arr);
-          this.db = getSubmitFormData(arr);
+          this.sheets = [];
+          this.activeSheetName = '';
+          applySheetToVm(parseSheetDom(doc));
         }).catch(() => { this.state = 'ERROR'; });
       }
     },
@@ -355,7 +357,7 @@ function runApp()
         var sheet = this.sheets.find(function (s) { return s.name === name; });
         if (!sheet) return;
         this.activeSheetName = name;
-        applySheetToVm(parseSheetHtml(sheet.rawHtml));
+        applySheetToVm(sheet.parsed);
       }
     }
   });
@@ -374,9 +376,19 @@ document.addEventListener('drop', e => { e.stopPropagation(); e.preventDefault()
 
 
 
+function resetCurrentData() {
+  if (!vm) return;
+  vm.db = [];
+  vm.fields = [];
+}
+
 function applySheetToVm(parsed) {
   if (!vm) return;
-  if (!parsed) { vm.state = 'ERROR'; return; }
+  if (!parsed) {
+    resetCurrentData();
+    vm.state = 'ERROR';
+    return;
+  }
   vm.fields = parsed.fields;
   vm.db = parsed.data;
   vm.state = 'DONE';
@@ -409,7 +421,7 @@ function cancelLoading() {
 function loadFile(file){
   if (!file) return;
   if (isLoadingFile) {
-    showCopyFeedback('Still loading previous file, please wait');
+    showToast('Still loading previous file, please wait');
     return;
   }
   isLoadingFile = true;
@@ -424,6 +436,7 @@ function loadFile(file){
 }
 
 function loadHtmlFile(file, token) {
+  if (vm) vm.state = 'LOADING';
   var reader = new FileReader();
   activeReader = reader;
   reader.addEventListener('loadend', function () {
@@ -460,23 +473,44 @@ function loadZipFile(file, token) {
         entries.push({ path: path, entry: entry });
       });
       if (entries.length === 0) {
-        if (vm) vm.state = 'ERROR';
+        if (vm) {
+          resetCurrentData();
+          vm.sheets = [];
+          vm.activeSheetName = '';
+          vm.state = 'ERROR';
+        }
         return;
       }
       return Promise.all(entries.map(function (e) {
         return e.entry.async('string').then(function (html) {
-          return { name: e.path.replace(/\.html?$/i, ''), rawHtml: html };
+          return {
+            name: e.path.replace(/\.html?$/i, ''),
+            parsed: parseSheetHtml(html)
+          };
         });
       })).then(function (sheets) {
         if (token !== loadToken) return;
         if (!vm) return;
+        sheets = sheets.filter(function (sheet) { return sheet.parsed; });
+        if (sheets.length === 0) {
+          resetCurrentData();
+          vm.sheets = [];
+          vm.activeSheetName = '';
+          vm.state = 'ERROR';
+          return;
+        }
         vm.sheets = sheets;
         vm.activeSheetName = sheets[0].name;
-        applySheetToVm(parseSheetHtml(sheets[0].rawHtml));
+        applySheetToVm(sheets[0].parsed);
       });
     }).catch(function () {
       if (token !== loadToken) return;
-      if (vm) vm.state = 'ERROR';
+      if (vm) {
+        resetCurrentData();
+        vm.sheets = [];
+        vm.activeSheetName = '';
+        vm.state = 'ERROR';
+      }
     }).then(function () { finishLoading(token); }, function () { finishLoading(token); });
   });
   reader.readAsArrayBuffer(file);
