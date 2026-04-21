@@ -392,8 +392,19 @@ function showHomeButton() {
   btnReturnToHome.style.opacity = 1;
 }
 
+var isLoadingFile = false;
+
+function finishLoading() {
+  isLoadingFile = false;
+}
+
 function loadFile(file){
   if (!file) return;
+  if (isLoadingFile) {
+    showCopyFeedback('Still loading previous file, please wait');
+    return;
+  }
+  isLoadingFile = true;
   var name = (file.name || '').toLowerCase();
   if (name.endsWith('.zip')) {
     loadZipFile(file);
@@ -406,11 +417,12 @@ function loadFile(file){
 function loadHtmlFile(file) {
   var reader = new FileReader();
   reader.addEventListener('loadend', function () {
-    if (reader.readyState !== FileReader.DONE) return;
-    if (!vm) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(); return; }
+    if (!vm) { finishLoading(); return; }
     vm.sheets = [];
     vm.activeSheetName = '';
     applySheetToVm(parseSheetHtml(reader.result));
+    finishLoading();
   });
   reader.readAsText(file, 'UTF-8');
 }
@@ -418,12 +430,13 @@ function loadHtmlFile(file) {
 function loadZipFile(file) {
   if (!window.JSZip) {
     if (vm) vm.state = 'ERROR';
+    finishLoading();
     return;
   }
   if (vm) vm.state = 'LOADING';
   var reader = new FileReader();
   reader.addEventListener('loadend', function () {
-    if (reader.readyState !== FileReader.DONE) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(); return; }
     JSZip.loadAsync(reader.result).then(function (zip) {
       var entries = [];
       zip.forEach(function (path, entry) {
@@ -448,7 +461,7 @@ function loadZipFile(file) {
       });
     }).catch(function () {
       if (vm) vm.state = 'ERROR';
-    });
+    }).then(finishLoading, finishLoading);
   });
   reader.readAsArrayBuffer(file);
 }
