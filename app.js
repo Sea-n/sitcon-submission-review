@@ -310,9 +310,6 @@ function runApp()
     watch: {
       fields: function () {
         this.selectedFields = this.fields.slice();
-      },
-      db: function () {
-        this.state = 'DONE'
       }
     },
     computed: {
@@ -349,8 +346,7 @@ function runApp()
         this.activeSheetName = '';
         this.db = [];
         this.fields = [];
-        var self = this;
-        this.$nextTick(function () { self.state = 'NOFILE'; });
+        this.state = 'NOFILE';
         btnReturnToHome.style.pointerEvents = 'none';
         btnReturnToHome.style.opacity = 0;
       },
@@ -358,10 +354,7 @@ function runApp()
         var sheet = this.sheets.find(function (s) { return s.name === name; });
         if (!sheet) return;
         this.activeSheetName = name;
-        var parsed = parseSheetHtml(sheet.rawHtml);
-        if (!parsed) { this.state = 'ERROR'; return; }
-        this.fields = parsed.fields;
-        this.db = parsed.data;
+        applySheetToVm(parseSheetHtml(sheet.rawHtml));
       }
     }
   });
@@ -385,6 +378,7 @@ function applySheetToVm(parsed) {
   if (!parsed) { vm.state = 'ERROR'; return; }
   vm.fields = parsed.fields;
   vm.db = parsed.data;
+  vm.state = 'DONE';
 }
 
 function showHomeButton() {
