@@ -13,8 +13,9 @@ not comfortable at all. So I wrote this simple app to display submissions on the
 
 Here's a
 [sample gsheet](https://docs.google.com/spreadsheets/d/13YHkHXf2MN0dhTRIV3mbOyWSLQYtwVBaMDEd-9g11v8/edit?usp=sharing),
-please download this (your) sheets as zipped-HTML format, then open index.html and drag the HTML
-format sheet into your browser.
+please download this (your) sheets as zipped-HTML format, then open index.htm and drag the file
+into your browser. You can drop either the `.zip` directly or an unzipped `.html` — when the ZIP
+contains multiple worksheets a selector appears so you can switch between them.
 
 ## License
 

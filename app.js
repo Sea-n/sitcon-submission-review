@@ -50,6 +50,22 @@ function getSubmitFormData(arr)
     .map(row => arrayToObject(vm.fields, row));
 }
 
+function parseSheetDom(dom) {
+  var table = dom.querySelector('table');
+  if (!table) return null;
+  var arr = tableTo2DArray(table);
+  var fields = getSubmitFormHeader(arr);
+  if (!fields) return null;
+  return {
+    fields: fields,
+    data: arr.slice(3).map(function (row) { return arrayToObject(fields, row); })
+  };
+}
+
+function parseSheetHtml(html) {
+  return parseSheetDom(parseHTML(html));
+}
+
 var vm;
 var FIELD_PREF_KEY = 'copyFieldsSelection';
 
@@ -83,7 +99,7 @@ function copyToClipboard(text) {
   });
 }
 
-function showCopyFeedback(message) {
+function showToast(message) {
   var existing = document.querySelector('.copy-toast');
   if (existing) {
     existing.parentNode.removeChild(existing);
@@ -222,7 +238,7 @@ function runApp()
         if (!this.fields || this.fields.length === 0) return;
         var markdown = buildMarkdown(this.fields, this.data);
         copyToClipboard(markdown).then(function () {
-          showCopyFeedback('Copied submission');
+          showToast('Copied submission');
         });
       },
       copyFieldsAsMarkdown: function (evt) {
@@ -250,7 +266,7 @@ function runApp()
       copyWithFields: function (fields) {
         var markdown = buildMarkdown(fields, this.data);
         copyToClipboard(markdown).then(function () {
-          showCopyFeedback('Copied selected fields');
+          showToast('Copied selected fields');
         });
       }
     }
@@ -278,26 +294,24 @@ function runApp()
         db: [],
         fields: [],
         state: 'NOFILE',
-        selectedFields: []
+        selectedFields: [],
+        sheets: [],
+        activeSheetName: ''
       }
     },
     created: function () {
       if(CONFIG.dataFileName) {
         this.state = 'LOADING';
         load(CONFIG.dataFileName).then(doc => {
-          let contentDOM = parseHTML(reader.result)
-          let arr = tableTo2DArray(contentDOM.querySelector('table'));
-          this.fields = getSubmitFormHeader(arr);
-          this.db = getSubmitFormData(arr);
+          this.sheets = [];
+          this.activeSheetName = '';
+          applySheetToVm(parseSheetDom(doc));
         }).catch(() => { this.state = 'ERROR'; });
       }
     },
     watch: {
       fields: function () {
         this.selectedFields = this.fields.slice();
-      },
-      db: function () {
-        this.state = 'DONE'
       }
     },
     computed: {
@@ -330,7 +344,20 @@ function runApp()
         }, 15);
       },
       returnToHome() {
-        location.reload();
+        cancelLoading();
+        this.sheets = [];
+        this.activeSheetName = '';
+        this.db = [];
+        this.fields = [];
+        this.state = 'NOFILE';
+        btnReturnToHome.style.pointerEvents = 'none';
+        btnReturnToHome.style.opacity = 0;
+      },
+      switchSheet(name) {
+        var sheet = this.sheets.find(function (s) { return s.name === name; });
+        if (!sheet) return;
+        this.activeSheetName = name;
+        applySheetToVm(sheet.parsed);
       }
     }
   });
@@ -349,21 +376,144 @@ document.addEventListener('drop', e => { e.stopPropagation(); e.preventDefault()
 
 
 
+function resetCurrentData() {
+  if (!vm) return;
+  vm.db = [];
+  vm.fields = [];
+}
+
+function applySheetToVm(parsed) {
+  if (!vm) return;
+  if (!parsed) {
+    resetCurrentData();
+    vm.state = 'ERROR';
+    return;
+  }
+  vm.fields = parsed.fields;
+  vm.db = parsed.data;
+  vm.state = 'DONE';
+}
+
+function showHomeButton() {
+  btnReturnToHome.style.pointerEvents = 'all';
+  btnReturnToHome.style.opacity = 1;
+}
+
+var isLoadingFile = false;
+var loadToken = 0;
+var activeReader = null;
+
+function finishLoading(token) {
+  if (token !== loadToken) return;
+  isLoadingFile = false;
+  activeReader = null;
+}
+
+function cancelLoading() {
+  if (activeReader) {
+    try { activeReader.abort(); } catch (e) {}
+  }
+  loadToken++;
+  isLoadingFile = false;
+  activeReader = null;
+}
+
 function loadFile(file){
+  if (!file) return;
+  if (isLoadingFile) {
+    showToast('Still loading previous file, please wait');
+    return;
+  }
+  isLoadingFile = true;
+  var token = loadToken;
+  var name = (file.name || '').toLowerCase();
+  if (name.endsWith('.zip')) {
+    loadZipFile(file, token);
+  } else {
+    loadHtmlFile(file, token);
+  }
+  showHomeButton();
+}
+
+function loadHtmlFile(file, token) {
+  if (vm) vm.state = 'LOADING';
   var reader = new FileReader();
-  reader.addEventListener('loadend', e => {
-    if(reader.readyState === FileReader.DONE) {
-      if(vm) {
-        let contentDOM = parseHTML(reader.result)
-        let arr = tableTo2DArray(contentDOM.querySelector('table'));
-        vm.fields = getSubmitFormHeader(arr);
-        vm.db = getSubmitFormData(arr);
-      }
-    }
+  activeReader = reader;
+  reader.addEventListener('loadend', function () {
+    if (token !== loadToken) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(token); return; }
+    if (!vm) { finishLoading(token); return; }
+    vm.sheets = [];
+    vm.activeSheetName = '';
+    applySheetToVm(parseSheetHtml(reader.result));
+    finishLoading(token);
   });
   reader.readAsText(file, 'UTF-8');
-  btnReturnToHome.style.pointerEvents = 'all';
-  btnReturnToHome.style.opacity = 1; // The return home button only appears after loading the file
+}
+
+function loadZipFile(file, token) {
+  if (!window.JSZip) {
+    if (vm) vm.state = 'ERROR';
+    finishLoading(token);
+    return;
+  }
+  if (vm) vm.state = 'LOADING';
+  var reader = new FileReader();
+  activeReader = reader;
+  reader.addEventListener('loadend', function () {
+    if (token !== loadToken) return;
+    if (reader.readyState !== FileReader.DONE) { finishLoading(token); return; }
+    JSZip.loadAsync(reader.result).then(function (zip) {
+      if (token !== loadToken) return;
+      var entries = [];
+      zip.forEach(function (path, entry) {
+        if (entry.dir) return;
+        if (path.indexOf('/') !== -1) return; // exclude resources/ and nested paths
+        if (!/\.html?$/i.test(path)) return;
+        entries.push({ path: path, entry: entry });
+      });
+      if (entries.length === 0) {
+        if (vm) {
+          resetCurrentData();
+          vm.sheets = [];
+          vm.activeSheetName = '';
+          vm.state = 'ERROR';
+        }
+        return;
+      }
+      return Promise.all(entries.map(function (e) {
+        return e.entry.async('string').then(function (html) {
+          return {
+            name: e.path.replace(/\.html?$/i, ''),
+            parsed: parseSheetHtml(html)
+          };
+        });
+      })).then(function (sheets) {
+        if (token !== loadToken) return;
+        if (!vm) return;
+        sheets = sheets.filter(function (sheet) { return sheet.parsed; });
+        if (sheets.length === 0) {
+          resetCurrentData();
+          vm.sheets = [];
+          vm.activeSheetName = '';
+          vm.state = 'ERROR';
+          return;
+        }
+        vm.sheets = sheets;
+        vm.activeSheetName = sheets[0].name;
+        applySheetToVm(sheets[0].parsed);
+      });
+    }).catch(function () {
+      if (token !== loadToken) return;
+      if (vm) {
+        resetCurrentData();
+        vm.sheets = [];
+        vm.activeSheetName = '';
+        vm.state = 'ERROR';
+      }
+    }).then(function () { finishLoading(token); }, function () { finishLoading(token); });
+  });
+  reader.readAsArrayBuffer(file);
 }
 
 document.addEventListener('dragover', e => {
