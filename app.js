@@ -44,10 +44,15 @@ function getSubmitFormHeader(arr)
   return arr[1]; /* After column number */
 }
 
-function getSubmitFormData(arr)
-{
-  return arr.slice(3) /* Column number, Header, Freeze Separator */
-    .map(row => arrayToObject(vm.fields, row));
+function normalizeSkipRowsValue(value) {
+  var n = parseInt(value, 10);
+  return isNaN(n) || n < 0 ? 0 : n;
+}
+
+function buildSheetData(parsed, skipRows) {
+  return parsed.rows.slice(normalizeSkipRowsValue(skipRows)).map(function (row) {
+    return arrayToObject(parsed.fields, row);
+  });
 }
 
 function parseSheetDom(dom) {
@@ -58,7 +63,7 @@ function parseSheetDom(dom) {
   if (!fields) return null;
   return {
     fields: fields,
-    data: arr.slice(3).map(function (row) { return arrayToObject(fields, row); })
+    rows: arr
   };
 }
 
@@ -296,7 +301,9 @@ function runApp()
         state: 'NOFILE',
         selectedFields: [],
         sheets: [],
-        activeSheetName: ''
+        activeSheetName: '',
+        currentSheet: null,
+        skipRows: 3
       }
     },
     created: function () {
@@ -312,6 +319,9 @@ function runApp()
     watch: {
       fields: function () {
         this.selectedFields = this.fields.slice();
+      },
+      skipRows: function () {
+        refreshCurrentSheetData();
       }
     },
     computed: {
@@ -328,6 +338,9 @@ function runApp()
       },
       clearSelectedFields() {
         this.selectedFields = [];
+      },
+      normalizeSkipRows() {
+        this.skipRows = normalizeSkipRowsValue(this.skipRows);
       },
       changeTheme() {
         let preferredTheme = localStorage.getItem('theme');
@@ -349,6 +362,8 @@ function runApp()
         this.activeSheetName = '';
         this.db = [];
         this.fields = [];
+        this.currentSheet = null;
+        this.skipRows = 3;
         this.state = 'NOFILE';
         btnReturnToHome.style.pointerEvents = 'none';
         btnReturnToHome.style.opacity = 0;
@@ -380,6 +395,12 @@ function resetCurrentData() {
   if (!vm) return;
   vm.db = [];
   vm.fields = [];
+  vm.currentSheet = null;
+}
+
+function refreshCurrentSheetData() {
+  if (!vm || !vm.currentSheet) return;
+  vm.db = buildSheetData(vm.currentSheet, vm.skipRows);
 }
 
 function applySheetToVm(parsed) {
@@ -389,8 +410,9 @@ function applySheetToVm(parsed) {
     vm.state = 'ERROR';
     return;
   }
+  vm.currentSheet = parsed;
   vm.fields = parsed.fields;
-  vm.db = parsed.data;
+  refreshCurrentSheetData();
   vm.state = 'DONE';
 }
 
